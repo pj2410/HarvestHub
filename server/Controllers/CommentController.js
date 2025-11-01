@@ -3,6 +3,17 @@ const CommentModel = require('../Models/CommentModel');
 module.exports.Comment = async (req, res, next) => {
     const { content, postId, creatorname, creatorId } = req.body;
 
+    // Debug: Log the received data
+    console.log('Received comment data:', { content, postId, creatorname, creatorId });
+
+    // Validate required fields
+    if (!content || !postId || !creatorname || !creatorId) {
+        return res.status(400).json({ 
+            message: "Missing required fields", 
+            received: { content, postId, creatorname, creatorId }
+        });
+    }
+
   try {
     // Create a new instance of the Comment model
     const newComment = new CommentModel({

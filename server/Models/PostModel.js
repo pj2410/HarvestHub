@@ -23,4 +23,8 @@ const PostSchema = mongoose.Schema({
     }, 
 })
 
+// Add indexes for better query performance
+PostSchema.index({ createdAt: -1 });
+PostSchema.index({ creatorId: 1 });
+
 module.exports = mongoose.model("posts", PostSchema);

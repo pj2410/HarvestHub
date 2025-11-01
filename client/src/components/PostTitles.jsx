@@ -19,20 +19,19 @@ const PostTitles = ({ posts, type }) => {
 
 
   useEffect(() => {
-    if (posts && posts.length > 0 && targetLanguage && !hasTranslated) {
-
+    if (posts && posts.length > 0) {
       const formatDate = (dateString) => {
         let distance = formatDistanceToNow(new Date(dateString), { addSuffix: true });
         distance = distance.replace('about ', '');
         return distance;
       };
+      
       let sortedPosts = [];
 
       if (type === "posts") {
         sortedPosts = posts.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       } else if (type === "comment") {
         console.log('Posts received:', posts);
-
         sortedPosts = posts.slice().sort((a, b) => new Date(b.commentSeq) - new Date(a.commentSeq));
       } else {
         sortedPosts = posts;
@@ -44,70 +43,11 @@ const PostTitles = ({ posts, type }) => {
         formattedDate: formatDate(post.createdAt),
       }));
 
-      const translatePosts = async () => {
-        const translated = await Promise.all(
-          formattedPosts.map(async (post) => {
-            const retryDelay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-            let attempts = 0;
-
-            while (attempts < 3) { // Retry up to 3 times
-              try {
-                const detectedLanguageData = await detectLanguage([post.content]);
-                const detectedLanguage = detectedLanguageData[0].language; // Assuming the response is an array
-                console.log(`Detected language: ${detectedLanguage} for post: ${post._id}`);
-
-                if (detectedLanguage !== targetLanguage) {
-                  if(type === "comment"){
-                    const translatedContent = await translateText(
-                      [post.content, post.creatorname, post.formattedDate],
-                      targetLanguage,
-                      detectedLanguage
-                    );
-                    console.log(`Translated content for post: ${post._id}`, translatedContent);
-                    return { 
-                      ...post, 
-                      content: translatedContent[0],
-                      creatorname: translatedContent[1],
-                      formattedDate: translatedContent[2] // Ensure createdAt is still in the correct format
-                    };
-                  }else{
-                    const translatedContent = await translateText(
-                      [post.content, post.heading, post.creatorname, post.formattedDate],
-                      targetLanguage,
-                      detectedLanguage
-                    );
-                    console.log(`Translated content for post: ${post._id}`, translatedContent);
-                    return { 
-                      ...post, 
-                      content: translatedContent[0],
-                      heading: translatedContent[1],
-                      creatorname: translatedContent[2],
-                      formattedDate: translatedContent[3] // Ensure createdAt is still in the correct format
-                    };
-                  }
-                }
-                return post;
-              } catch (error) {
-                if (error.response && error.response.status === 429) {
-                  attempts++;
-                  console.log(`Rate limit hit, retrying... attempt ${attempts}`);
-                  await retryDelay(2000 * attempts); // Increased delay based on attempt number (2s, 4s, 6s)
-                } else {
-                  console.error('Error in translation:', error);
-                  break; // Exit on any other error
-                }
-              }
-            }
-            return post; // Return original post if all attempts fail
-          })
-        );
-        setTranslatedPosts(translated);
-        setHasTranslated(true); // Mark translation as complete
-      };
-
-      translatePosts();
+      // Skip translation for now - directly set formatted posts
+      setTranslatedPosts(formattedPosts);
+      setHasTranslated(true);
     }
-  }, [posts, targetLanguage, hasTranslated]);
+  }, [posts]);
 
   const handleEdit = (post) => {
     setSelectedPost(post);

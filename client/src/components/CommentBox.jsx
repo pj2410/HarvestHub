@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import "../assets/Comment.css";
 
 const creatorname = Cookies.get("username");
-// const creatorId = Cookies.get('id');
+const creatorId = Cookies.get('id');
 const INITIAL_HEIGHT = 46;
 const wmb = -50;
 const mb = 2000;
@@ -49,18 +49,24 @@ const CommentBox = ({ onCommentSubmit,type,heading, postId }) => {
   const onSubmit = async (e) => {
     e.preventDefault();
 
+    // Check if user is logged in
+    if (!creatorname || !creatorId) {
+      alert("Please log in to comment");
+      return;
+    }
+
     // Create the comment data object
     const commentData = {
       postId: postId, // Assuming postId is available in the scope
       content: commentValue,
       creatorname: creatorname,
-      creatorId: Cookies.get("id"), // Add the creatorId if needed
+      creatorId: creatorId,
       createdAt: new Date(),
     };
 
     const postData = {
         creatorname: creatorname,
-        creatorId: Cookies.get("id"),
+        creatorId: creatorId,
         heading: heading,
         content: commentValue
       };

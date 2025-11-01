@@ -27,6 +27,10 @@ const CommentSchema = mongoose.Schema({
     },
 })
 
+// Add indexes for better query performance
+CommentSchema.index({ postId: 1, createdAt: -1 });
+CommentSchema.index({ creatorId: 1 });
+
 // Pre-save middleware to autoincrement the commentSeq field
 CommentSchema.pre('save', async function(next) {
     try {

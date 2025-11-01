@@ -29,8 +29,28 @@ module.exports.Post = async (req, res, next) => {
 
 module.exports.Postfetch = async (req, res, next) => {
     try {
-        const posts = await PostModel.find();
-        res.status(200).json({ posts });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const posts = await PostModel.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        
+        const totalPosts = await PostModel.countDocuments();
+        const totalPages = Math.ceil(totalPosts / limit);
+
+        res.status(200).json({ 
+            posts,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalPosts,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
